@@ -28,7 +28,7 @@ const swaggerSpec = swaggerJsdoc({
     openapi: '3.0.0',
     info: { title: 'Smart Bot API', version: '1.0.0' },
   },
-  apis: ['./server.js'], // minimal - dynamic endpoints won't be auto-documented here
+  apis: ['./server.js'],
 });
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -59,11 +59,11 @@ app.post('/create-api', async (req, res) => {
   }
 });
 
-// Initialize DB and Telegram
+// Inicializa DB (y opcional Telegram)
 const start = async () => {
   await initDb();
-  // Telegram bot (optional)
   const token = process.env.TELEGRAM_BOT_TOKEN;
+
   if (token) {
     const bot = new TelegramBot(token, { polling: true });
     bot.onText(/\/create (.+)/, async (msg, match) => {
@@ -83,7 +83,13 @@ const start = async () => {
     console.log('⚠️ TELEGRAM_BOT_TOKEN no definido; salto integración Telegram');
   }
 
-  app.listen(PORT, () => console.log(`🚀 Servidor en http://localhost:${PORT}`));
+  // Solo ejecuta servidor localmente
+  if (process.env.VERCEL !== '1') {
+    app.listen(PORT, () => console.log(`🚀 Servidor local en http://localhost:${PORT}`));
+  }
 };
 
 start();
+
+// Exporta para Vercel
+export default app;
