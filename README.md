@@ -1,4 +1,4 @@
-# smart-bot-api
+
 
 Proyecto: Bot inteligente que genera APIs dinámicas, guarda metadata en Neon (Postgres),
 expone documentación automática (Swagger), un panel web para ver y probar APIs, y control por Telegram.
