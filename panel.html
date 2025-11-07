@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Smart Bot API - Panel</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;max-width:900px;margin:24px auto;padding:0 16px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .api{border:1px solid #ddd;padding:12px;border-radius:8px;margin-bottom:8px}
+    textarea{width:100%;height:80px}
+    button{padding:8px 12px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <header><h1>Smart Bot API — Panel</h1><div><small>Ver documentación: <a href="/docs" target="_blank">/docs</a></small></div></header>
+
+  <section>
+    <h2>Crear API (usa el bot)</h2>
+    <textarea id="instruction" placeholder="Escribe: crear una api que..."></textarea><br/>
+    <button id="createBtn">Crear API</button>
+    <div id="createResult"></div>
+  </section>
+
+  <hr/>
+
+  <section>
+    <h2>APIs creadas</h2>
+    <div id="list"></div>
+  </section>
+
+  <script>
+    async function fetchList() {
+      const res = await fetch('/api/list');
+      const data = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      data.apis.forEach(api => {
+        const div = document.createElement('div');
+        div.className = 'api';
+        div.innerHTML = `
+          <strong>/api/${api.name}</strong> — <em>${new Date(api.created_at).toLocaleString()}</em>
+          <p>${api.instruction}</p>
+          <pre>${api.example}</pre>
+          <button onclick="testApi('${api.name}')">Probar</button>
+          <div id="res_${api.name}"></div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    async function testApi(name) {
+      const resArea = document.getElementById('res_' + name);
+      resArea.innerText = 'Cargando...';
+      try {
+        const r = await fetch('/api/' + name, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: 'test' })});
+        const j = await r.json();
+        resArea.innerText = JSON.stringify(j, null, 2);
+      } catch (err) {
+        resArea.innerText = 'Error: ' + err.message;
+      }
+    }
+
+    document.getElementById('createBtn').addEventListener('click', async () => {
+      const inst = document.getElementById('instruction').value;
+      const res = await fetch('/create-api', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ instruction: inst })});
+      const j = await res.json();
+      document.getElementById('createResult').innerText = JSON.stringify(j, null, 2);
+      await fetchList();
+    });
+
+    fetchList();
+  </script>
+</body>
+</html>
